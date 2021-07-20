@@ -1,3 +1,6 @@
+/* eslint-disable jsx-a11y/media-has-caption */
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-return-assign */
 /* eslint-disable no-multi-assign */
 import React, {useState,useRef,useMemo, useCallback} from 'react';
 import { Canvas, useLoader, useFrame, useThree, extend, useResource } from 'react-three-fiber'
@@ -6,88 +9,16 @@ import './App.css';
 import { a, config } from 'react-spring/three';
 import { Controls, useControl } from 'react-three-gui';
 import * as meshline from 'threejs-meshline'
+import MidiFile from 'midifile';
+import MidiEvents from 'midievents';
+import  drums from './drums.mid';
 import  Effects  from './Effects'
+import tesselated from './tesselated.mp3';
 
 extend(meshline)
 
-function Fatline({ curve, width, color, speed }) {
-  const material = useRef()
-  useFrame(() => (material.current.uniforms.dashOffset.value -= speed))
-  return (
-    <mesh>
-      <meshLine attach="geometry" vertices={curve} />
-      <meshLineMaterial
-        attach="material"
-        ref={material}
-        transparent
-        depthTest={false}
-        lineWidth={width}
-        color={color}
-        dashArray={0.1}
-        dashRatio={0.9}
-      />
-    </mesh>
-  )
-}
 
-function Lines({ count, colors }) {
-  const lines = useMemo(
-    () =>
-      new Array(count).fill().map(() => {
-        const pos = new THREE.Vector3(10 - Math.random() * 200, 10 - Math.random() * 200, 10 - Math.random() * 200)
-        const points = new Array(30)
-          .fill()
-          .map(() =>
-            pos.add(new THREE.Vector3(4 - Math.random() * 20, 4 - Math.random() * 10, 2 - Math.random() * 4)).clone()
-          )
-        const curve = new THREE.CatmullRomCurve3(points).getPoints(1000)
-        return {
-          color: colors[parseInt(colors.length * Math.random())],
-          width: Math.max(0.1, 0.65 * Math.random()),
-          speed: Math.max(0.0001, 0.0005 * Math.random()),
-          curve,
-        }
-      }),
-    [colors, count]
-  )
-  return lines.map((props, index) => <Fatline key={index} {...props} />)
-}
-function Stars({ count = 5000 }) {
-  const positions = useMemo(() => {
-    const positions = []
-    for (let i = 0; i < count; i++) {
-      positions.push((50 + Math.random() * 1000) * (Math.round(Math.random()) ? -1 : 1))
-      positions.push((50 + Math.random() * 1000) * (Math.round(Math.random()) ? -1 : 1))
-      positions.push((50 + Math.random() * 1000) * (Math.round(Math.random()) ? -1 : 1))
-    }
-    return new Float32Array(positions)
-  }, [count])
-  return (
-    <points>
-      <bufferGeometry attach="geometry">
-        <bufferAttribute
-          attachObject={['attributes', 'position']}
-          count={positions.length / 3}
-          array={positions}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial attach="material" size={2} sizeAttenuation color="white" transparent opacity={0.8} fog={false} />
-    </points>
-  )
-}
-const GROUP = 'Extra';
 
-function Extra() {
-  const rotateX = useControl('Rotation X', { type: 'number' });
-  const rotateY = useControl('Rotation Y', { type: 'number' });
-  return (
-    <a.mesh position={[1.5, 0, 0.5]} rotation-x={rotateX} rotation-y={rotateY}>
-      <boxGeometry attach="geometry" args={[0.7, 0.7, 0.7]} />
-      <a.meshStandardMaterial attach="material" color="#ffff00" />
-    </a.mesh>
-  );
-}
 function hslToHex(h, s, l) {
   h /= 360;
   s /= 100;
@@ -135,14 +66,9 @@ function Box({ direction, offset, index, count }) {
   // Set up state for the hovered and active state
   const col = new THREE.Color(hslToHex(((index*count)/count)**2 % 360, 80,69));
   const linecol = new THREE.Color(hslToHex((156+(index*64)) % 255, 100,50));
-  console.log(col);
-  useControl('Toggle cube', {
-    group: GROUP,
-    type: 'button',
-    onClick: () => set(s => !s),
-  });
+  // console.log(col);
   const icosa = new THREE.IcosahedronGeometry(rad, det);
-  console.log(col)
+  // console.log(col)
   const line = new THREE.LineBasicMaterial({ color: new THREE.Color(linecol), transparent: true, opacity: 1, linewidth: 2,depthWrite:false });
 
 
@@ -150,12 +76,12 @@ function Box({ direction, offset, index, count }) {
   // eslint-disable-next-line no-return-assign
   // eslint-disable-next-line no-multi-assign
 
-  console.log(re);
+  // console.log(re);
   useFrame((state, delta) => {
-    console.log(camera.position);
+    // console.log(camera.position);
     if (camera) {
       meshMat.current.opacity = ((distanceVector(camera.position, new THREE.Vector3(0, 0, 0)))/60)
-      console.log((distanceVector(camera.position, new THREE.Vector3(0,0,0)))/60)
+      // console.log((distanceVector(camera.position, new THREE.Vector3(0,0,0)))/60)
     }
     if (direction) {
       meh.current.rotation.x += 0.05 * Math.cos((1 * Number(new Date()) / 1000)+offset) * direction
@@ -194,130 +120,163 @@ function Box({ direction, offset, index, count }) {
 const Boxes = ({count}) => {
   const b = [];
   for (let i = 0; i < count; i++){
-    console.log(typeof i)
-    console.log(i);
-    console.log(Math.PI/(i+1));
+    // console.log(typeof i)
+    // console.log(i);
+    // console.log(Math.PI/(i+1));
     b.push(<Box key={`box-${i}`} direction={i % 2 === 0 ? 1 : -1} offset={i * Math.PI / (count/2)} index={i} count={count} />)
   }
-  console.log(b)
+  // console.log(b)
   return b;
 }
-function Swarm({ count, mouse }) {
-  const mesh = useRef()
-  const light = useRef()
-  const { size, viewport } = useThree()
-  const aspect = size.width / viewport.width
-
-  const dummy = useMemo(() => new THREE.Object3D(), [])
-  // Generate some random positions, speed factors and timings
-  const particles = useMemo(() => {
-    const temp = []
-    for (let i = 0; i < count; i++) {
-      const t = Math.random() * 100
-      const factor = 20 + Math.random() * 100
-      const speed = 0.01 + Math.random() / 200
-      const xFactor = -50 + Math.random() * 100
-      const yFactor = -50 + Math.random() * 100
-      const zFactor = -50 + Math.random() * 100
-      temp.push({ t, factor, speed, xFactor, yFactor, zFactor, mx: 0, my: 0 })
-    }
-    return temp
-  }, [count])
-  // The innards of this hook will run every frame
-  useFrame(state => {
-    // Makes the light follow the mouse
-    light.current.position.set(-mouse.current[0] / aspect*2, -1*mouse.current[1] / aspect*2, 0)
-    // Run through the randomized data to calculate some movement
-    particles.forEach((particle, i) => {
-      let { t, factor, speed, xFactor, yFactor, zFactor } = particle
-      // There is no sense or reason to any of this, just messing around with trigonometric functions
-      t = particle.t += speed / 2
-      const a = Math.cos(t) + Math.sin(t * 1) / 10
-      const b = Math.sin(t) + Math.cos(t * 2) / 10
-      const s = Math.cos(t)
-      particle.mx += (mouse.current[0] - particle.mx) * 0.01
-      particle.my += (mouse.current[1] * -1 - particle.my) * 0.01
-      // Update the dummy object
-      dummy.position.set(
-        (particle.mx / 10) * a + xFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 1) * factor) / 10,
-        (particle.my / 10) * b + yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10,
-        (particle.my / 10) * b + zFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 3) * factor) / 10
-      )
-      dummy.scale.set(s, s, s)
-      dummy.rotation.set(s * 5, s * 5, s * 5)
-      dummy.updateMatrix()
-      // And apply the matrix to the instanced item
-      mesh.current.setMatrixAt(i, dummy.matrix)
-    })
-    mesh.current.instanceMatrix.needsUpdate = true
-  })
-  return (
-    <>
-      <pointLight ref={light} distance={40} intensity={8} color="lightblue">
-        <mesh>
-          <sphereBufferGeometry attach="geometry" args={[0.5, 32, 32]} />
-          <meshBasicMaterial attach="material" color="lightblue" />
-        </mesh>
-      </pointLight>
-      <instancedMesh ref={mesh} args={[null, null, count]}>
-        <dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-        <meshStandardMaterial attach="material" color="#700020" />
-      </instancedMesh>
-    </>
-  )
+function getBuffer( url, success, error ) {
+  const xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function( e ) {
+      if ( xhr.readyState == 4 ) {
+          if ( xhr.status == 200 ) {
+              return success( e.currentTarget.response );
+          }
+          if ( error ) {
+              return error( `${xhr.status  } ${  xhr.statusText}` );
+          }
+          throw `${xhr.status  } ${  xhr.statusText}`;
+      }
+  };
+  xhr.open( 'GET', url, true );
+  xhr.responseType = 'arraybuffer';
+  xhr.send( null );
 }
+
 function Rig({ mouse }) {
+
+
   const { camera } = useThree()
   useFrame(() => {
-
-    camera.lookAt(0, 0, 0)
+    // console.log(midi);
+    // camera.position.z = 5 + 5*Math.sin(new Date());
+     camera.lookAt(0, 0, 0)
   })
   return null
 }
+function Boxx(props) {
+  // This reference will give us direct access to the mesh
+  const mesh = useRef()
+
+  // Set up state for the hovered and active state
+  const [hovered, setHover] = useState(false)
+  const [active, setActive] = useState(false)
+
+  // Rotate mesh every frame, this is outside of React without overhead
+  useFrame(() => {
+    mesh.current.rotation.x = mesh.current.rotation.y += 0.01
+  })
+
+  return (
+    <a.mesh
+      {...props}
+      ref={mesh}
+      scale={active ? [1.5, 1.5, 1.5] : [1, 1, 1]}
+      onClick={(e) => setActive(!active)}
+      onPointerOver={(e) => setHover(true)}
+      onPointerOut={(e) => setHover(false)}>
+      <a.boxGeometry args={[1, 1, 1]} attach="geometry" />
+      <meshStandardMaterial  attach="material" color={hovered ? 'hotpink' : 'orange'} />
+    </a.mesh>
+  )
+}
+const Timer = ({startTime, audio, id, position}) => {
+  const [midi,setMidi] = useState();
+  const mesh = useRef()
+
+  // Set up state for the hovered and active state
+  const [active, setActive] = useState(false);
+  React.useEffect(()=>{
+    getBuffer(drums,(b)=>{
+      const file = new MidiFile(b);
+      console.log(file);
+      file.header.setTicksPerBeat(139);
+      setMidi(file);
+    },()=>{})
+  },[])
+  useFrame(({},delta)=>{
+    // console.log(audio?.current?.currentTime);
+    const elapsedMs = (Date.now()-startTime);
+    // console.log(delta, elapsedMs, elapsedMs-(delta*1000));
+     if(typeof midi !== 'undefined')
+     {
+      //  console.log(mesh.current);
+       const midiEvents = midi.getEvents();
+        midiEvents.forEach(event => {
+          // console.log(event.playTime, elapsedMs);
+          if(event.playTime >= elapsedMs-(delta*2000) && event.playTime <= elapsedMs &&event.type === 8 && event.param1 === id)
+            if(event.subtype === 8)
+              {
+                  mesh.current.scale.set(1,1,1);
+                  console.log("noteOff", event.param1, event)
+              }
+              else if(event.subtype === 9){
+                  mesh.current.scale.set(1.5,1.5,1.5);;
+                console.log("noteOn", event.param1, event)
+            }
+        })
+      }
+    })
+  return (
+    <mesh
+    position={position}
+    ref={mesh}
+    scale={active ? [1.5, 1.5, 1.5] : [1, 1, 1]}
+  >
+    <icosahedronGeometry args={[1,0]} attach="geometry" />
+    <meshStandardMaterial color="hotpink" attach="material" />
+  </mesh>
+  )
+};
 export default function App() {
+
   const mouse = useRef([0, 0])
   const mesh = useRef();
   const light = useRef();
   const count = 50;
+  const audio = useRef();
+  const [startTime, setStartTime] = useState(0);
   const dummy = useMemo(() => new THREE.Object3D(), [])
-  const aspect =  window.width/window.height
+  const aspect =  window.width/window.height;
+
+  console.log(startTime);
   const onMouseMove = useCallback(({ clientX: x, clientY: y }) => (mouse.current = [x - window.innerWidth / 2, y - window.innerHeight / 2]), [])
-  
   return (
     <div id="container" style={{ width: '100%', height: '100%' }} onMouseMove={onMouseMove}>
     <Canvas
+    onClick={(e)=>{if(startTime === 0){setStartTime(Date.now);audio.current.play();}}}
       style={{ background: 'radial-gradient(at 50% 70%, #200f20 40%, #090b1f 80%, #050523 100%)' }}
       camera={{ position: [0, 0, 8] }}
         shadowMap>
-        <Lines count={30} colors={['#A2CCB6', '#FCEEB5', '#EE786E', '#e0feff', 'lightpink', 'lightblue']} />
-      
       <Rig mouse={mouse} />
-      <ambientLight intensity={0.4} />
-      <pointLight intensity={20} position={[-10, -25, -10]} color="#200f20" />
+      {/* <ambientLight intensity={0.4} /> */}
+      {/* <pointLight intensity={20} position={[-10, -25, -10]} color="#200f20" /> */}
       <spotLight
         castShadow
-        intensity={4}
+        intensity={1}
         angle={Math.PI / 8}
         position={[15, 25, 5]}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <fog attach="fog" args={['#090b1f', 0, 25]} />
-
-        <Stars />
+      <ambientLight intensity={0.5} />
+      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+      <pointLight position={[-10, -10, -10]} />
+     <Timer startTime={startTime} audio={audio} id={40} position={[-2,0,0]} />
+     <Timer startTime={startTime} audio={audio} id={36} position={[0,0,0]}/>
+     <Timer startTime={startTime} audio={audio} id={41} position={[2,0,0]}/>
      
         <Effects />
-        <ambientLight />
-        <pointLight position={[10, 0, 10]} intensity={1} />
-        <Boxes count={80} />
-        <pointLight ref={light} distance={40} intensity={8} color="lightblue" />
-        <Swarm mouse={mouse} count={200} />
-
-        <instancedMesh ref={mesh} args={[null, null, count]}>
-          <dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-          <meshStandardMaterial attach="material" color="#700020" />
-        </instancedMesh>
+        {/* <Boxx position={[0,0,0]} /> */}
+        {/* <ambientLight />
+        <pointLight position={[10, 0, 10]} intensity={1} /> */}
+        <Boxes count={5} />
+        {/* <pointLight ref={light} distance={40} intensity={8} color="lightblue" /> */}
       </Canvas>
+      <audio src={tesselated} ref={audio} />
       </div>
   )
 }
