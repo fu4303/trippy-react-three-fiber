@@ -131,8 +131,8 @@ const Boxes = ({count}) => {
 function getBuffer( url, success, error ) {
   const xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function( e ) {
-      if ( xhr.readyState == 4 ) {
-          if ( xhr.status == 200 ) {
+      if ( xhr.readyState === 4 ) {
+          if ( xhr.status === 200 ) {
               return success( e.currentTarget.response );
           }
           if ( error ) {
