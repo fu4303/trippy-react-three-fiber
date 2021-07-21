@@ -219,7 +219,7 @@ const Timer = ({startTime, audio, id, position}) => {
             }
         })
       }
-    })
+    }
   return (
     <mesh
     position={position}
