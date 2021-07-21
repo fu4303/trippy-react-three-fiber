@@ -25,7 +25,7 @@ export default function Effects() {
   const { scene, gl, size, camera } = useThree()
   useEffect(() => void composer.current.setSize(size.width, size.height), [size])
   useFrame(() => composer.current.render(), 2)
-  const aspect = useMemo(() => new THREE.Vector2(size.width, size.height), [size])
+  
   return (
     <>
       <ThreeControls
