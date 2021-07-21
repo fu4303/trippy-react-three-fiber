@@ -197,7 +197,7 @@ const Timer = ({startTime, audio, id, position}) => {
       setMidi(file);
     },()=>{})
   },[])
-  useFrame({},delta)=>{
+  useFrame({},delta);{
     // console.log(audio?.current?.currentTime);
     const elapsedMs = (Date.now()-startTime);
     // console.log(delta, elapsedMs, elapsedMs-(delta*1000));
